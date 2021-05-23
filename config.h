@@ -61,6 +61,8 @@ static const int resizehints = 1;    /* 1 means respect size hints in tiled resi
 static const Layout layouts[] = {
 	/* symbol     arrange function */
 	{ "[]=",      tile },    /* first entry is default */
+	{ "|M|",      centeredmaster },
+	{ ">M>",      centeredfloatingmaster },
 	{ "[M]",      monocle },
 	{ "><>",      NULL },    /* no layout function means floating behavior */
 };
@@ -83,6 +85,12 @@ static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont,
 static const char *roficmd[] = { "rofi", "-show", "run", "-font", "SourceCodePro 12" };
 static const char *termcmd[]  = { "alacritty", NULL };
 static const char *browsercmd[]  = { "firefox", NULL };
+static const char *slockcmd[]  = { "slock", NULL };
+
+void focusmaster(const Arg* arg)
+{
+	focus(NULL);
+}
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
@@ -90,7 +98,9 @@ static Key keys[] = {
 	{ MODKEY,                       XK_space,  spawn,          {.v = roficmd } },
 	{ MODKEY,                       XK_Return, spawn,          {.v = termcmd } },
 	{ MODKEY,                       XK_b,      spawn,          {.v = browsercmd } },
+	{ MODKEY|ControlMask,           XK_l,      spawn,          {.v = slockcmd } },
 	{ MODKEY,                       XK_q,      spawn,          SHCMD("~/.config/wm_scripts/screenshot.sh") },
+	{ MODKEY|ShiftMask,             XK_q,      spawn,          SHCMD("~/.config/wm_scripts/all.sh") },
 	{ MODKEY|ControlMask,           XK_b,      togglebar,      {0} },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
 	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
@@ -101,13 +111,14 @@ static Key keys[] = {
 	{ MODKEY|ControlMask,           XK_Return, zoom,           {0} },
 	{ MODKEY,                       XK_Tab,    view,           {0} },
 	{ MODKEY,                       XK_w,      killclient,     {0} },
-	{ MODKEY,                       XK_1,      setlayout,      {.v = &layouts[0]} },
-	{ MODKEY,                       XK_2,      setlayout,      {.v = &layouts[1]} },
-	{ MODKEY,                       XK_3,      setlayout,      {.v = &layouts[2]} },
-	{ MODKEY,                       XK_apostrophe,  setlayout,      {0} },
+	{ MODKEY,                       XK_1,      setlayout,   {.v = &layouts[0]} },
+	{ MODKEY,                       XK_2,      setlayout,   {.v = &layouts[1]} },
+	{ MODKEY,                       XK_3,      setlayout,   {.v = &layouts[3]} },
+	{ MODKEY|ControlMask,           XK_f,      togglelayout,   {.v = &layouts[4]} },
+	{ MODKEY,                       XK_apostrophe,  focusmaster,{0} },
 	{ MODKEY|ControlMask,           XK_space,  togglefloating, {0} },
 	{ MODKEY,                       XK_0,      view,           {.ui = ~0 } },
-	{ ALTKEY,             XK_0,      tag,            {.ui = ~0 } },
+	{ ALTKEY,                       XK_0,      tag,            {.ui = ~0 } },
 	{ MODKEY,                       XK_comma,  focusmon,       {.i = -1 } },
 	{ MODKEY,                       XK_period, focusmon,       {.i = +1 } },
 	{ MODKEY|ShiftMask,             XK_comma,  tagmon,         {.i = -1 } },
@@ -120,7 +131,7 @@ static Key keys[] = {
 	TAGKEYS(                        XK_x,                      5)
 	TAGKEYS(                        XK_c,                      6)
 	TAGKEYS(                        XK_v,                      7)
-	{ MODKEY|ControlMask,             XK_q,      quit,           {0} },
+	{ MODKEY|ControlMask,           XK_q,      quit,           {0} },
 };
 
 /* button definitions */
