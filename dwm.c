@@ -237,6 +237,7 @@ static int xerrorstart(Display *dpy, XErrorEvent *ee);
 static void zoom(const Arg *arg);
 static void centeredmaster(Monitor *m);
 static void centeredfloatingmaster(Monitor *m);
+static void togglelayout(const Arg *arg);
 
 /* variables */
 static const char broken[] = "broken";
@@ -2263,3 +2264,15 @@ centeredfloatingmaster(Monitor *m)
 		tx += WIDTH(c);
 	}
 }
+
+void 
+togglelayout(const Arg* arg)
+{
+	int on;
+	if (!arg) return;
+	Layout* to = (Layout*)arg->v;
+	on = to->arrange == selmon->lt[selmon->sellt]->arrange; // check if arrange function is the same
+	if (!on) setlayout(arg);
+	else setlayout(NULL);
+}
+
