@@ -238,6 +238,8 @@ static void zoom(const Arg *arg);
 static void centeredmaster(Monitor *m);
 static void centeredfloatingmaster(Monitor *m);
 static void togglelayout(const Arg *arg);
+static void togglegaming(const Arg *arg);
+static int iskey(KeySym *keysym, XKeyEvent *ev, Key *key);
 
 /* variables */
 static const char broken[] = "broken";
@@ -272,6 +274,7 @@ static Display *dpy;
 static Drw *drw;
 static Monitor *mons, *selmon;
 static Window root, wmcheckwin;
+static int isgaming = 0;
 
 /* configuration, allows nested code to access above variables */
 #include "config.h"
@@ -960,11 +963,20 @@ grabkeys(void)
 		KeyCode code;
 
 		XUngrabKey(dpy, AnyKey, AnyModifier, root);
+
+		/* register toggle gaming mode key */
+		if ((code = XKeysymToKeycode(dpy, togglegamingkey.keysym))) 
+			for (j = 0; j < LENGTH(modifiers); j++)
+				XGrabKey(dpy, code, togglegamingkey.mod | modifiers[j], root,
+					True, GrabModeAsync, GrabModeAsync);
 		for (i = 0; i < LENGTH(keys); i++)
-			if ((code = XKeysymToKeycode(dpy, keys[i].keysym)))
-				for (j = 0; j < LENGTH(modifiers); j++)
+			if ((code = XKeysymToKeycode(dpy, keys[i].keysym))) {
+				/* ignore key with mods used in gaming */
+				if (isgaming && CLEANMASK(keys[i].mod & gamingmodmask) > 0) continue; 
+				for (j = 0; j < LENGTH(modifiers); j++) 
 					XGrabKey(dpy, code, keys[i].mod | modifiers[j], root,
 						True, GrabModeAsync, GrabModeAsync);
+			}
 	}
 }
 
@@ -987,6 +999,14 @@ isuniquegeom(XineramaScreenInfo *unique, size_t n, XineramaScreenInfo *info)
 }
 #endif /* XINERAMA */
 
+int /* Own added function to to reuse match key. */
+iskey(KeySym *keysym, XKeyEvent *ev, Key *key)
+{
+	return (*keysym == key->keysym
+	&& CLEANMASK(key->mod) == CLEANMASK(ev->state)
+	&& key->func);
+}
+
 void
 keypress(XEvent *e)
 {
@@ -996,11 +1016,18 @@ keypress(XEvent *e)
 
 	ev = &e->xkey;
 	keysym = XKeycodeToKeysym(dpy, (KeyCode)ev->keycode, 0);
-	for (i = 0; i < LENGTH(keys); i++)
-		if (keysym == keys[i].keysym
-		&& CLEANMASK(keys[i].mod) == CLEANMASK(ev->state)
-		&& keys[i].func)
+
+	/* always check for gaming key */
+	if (iskey(&keysym, ev. &togglegamingkey)) 
+			togglegaming(&(togglegamingkey.arg));
+
+	for (i = 0; i < LENGTH(keys); i++) {
+		/* ignore with mods used in gaming */
+		if (isgaming && CLEANMASK(ev->state & gamingmodmask)) 
+			continue;
+		else if (iskey(&keysym, ev, &keys[i]))
 			keys[i].func(&(keys[i].arg));
+	}
 }
 
 void
@@ -2274,5 +2301,12 @@ togglelayout(const Arg* arg)
 	on = to->arrange == selmon->lt[selmon->sellt]->arrange; // check if arrange function is the same
 	if (!on) setlayout(arg);
 	else setlayout(NULL);
+}
+
+void /* toggle gaming mode */
+togglegaming(const Arg* arg)
+{
+	isgaming ^= 1;	
+	grabkeys();
 }
 

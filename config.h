@@ -87,10 +87,13 @@ static const char *termcmd[]  = { "alacritty", NULL };
 static const char *browsercmd[]  = { "firefox", NULL };
 static const char *slockcmd[]  = { "slock", NULL };
 
-void focusmaster(const Arg* arg)
-{
-	focus(NULL);
-}
+/* functions */
+void focusmaster(const Arg* arg);
+
+/* variables */
+static int gamingmodmask = MODKEY; /* mod keys to disable when gaming */
+
+static Key togglegamingkey = { MODKEY|ControlMask, XK_g, togglegaming, {0} };
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
@@ -150,4 +153,10 @@ static Button buttons[] = {
 	{ ClkTagBar,            MODKEY,         Button1,        tag,            {0} },
 	{ ClkTagBar,            MODKEY,         Button3,        toggletag,      {0} },
 };
+
+void
+focusmaster(const Arg* arg)
+{
+	focus(NULL);
+}
 
