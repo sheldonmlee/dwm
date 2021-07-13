@@ -1018,7 +1018,7 @@ keypress(XEvent *e)
 	keysym = XKeycodeToKeysym(dpy, (KeyCode)ev->keycode, 0);
 
 	/* always check for gaming key */
-	if (iskey(&keysym, ev. &togglegamingkey)) 
+	if (iskey(&keysym, ev, &togglegamingkey)) 
 			togglegaming(&(togglegamingkey.arg));
 
 	for (i = 0; i < LENGTH(keys); i++) {
